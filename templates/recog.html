@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="/static/globals.css" />
+    <link rel="stylesheet" href="/static/recog.css" />
+    <script src="https://unpkg.com/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
+  </head>
+  <body>
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          if ('speechSynthesis' in window) {
+            var message = new SpeechSynthesisUtterance('Tap top left corner to Login or Sign in, point the camera at the note and touch anywhere on the Screen to scan');
+            window.speechSynthesis.speak(message);
+          }
+        }, 700);
+      });
+      </script>
+    <div class="user-sign-up">
+      <div class="div">
+        <div class="overlap">
+          <div class="ellipse"></div>
+          <div class="ellipse-2"></div>
+          <p class="XVISION" id="recogxvis">XVISION</p>
+          <script>
+            document.getElementById("recogxvis").addEventListener("click", function() {
+                window.location.href = "/static/landing.html";
+            });
+        </script>
+          <p class="text">Currency Recognition</p>
+          <p class="text1">Hold the note in front of the camera</p>
+          <p class="text2">Tap the screen to Scan</p>
+          <div id="prediction" class="pred"></div>
+          <video id="camera" autoplay class="cam"></video>
+          <canvas id="canvas" style="display: none;" class="cam1"></canvas>
+          <div class="upload">
+            <form id="uploadForm" enctype="multipart/form-data">
+              <input
+                type="file"
+                id="fileInput"
+                accept="image/*"
+                style="display: none;"
+              />
+              <label for="fileInput" class="custom-file-upload">Upload Image</label>
+            </form>
+          </div>
+          <button class="btn" id="predictButton">Predict</button>
+        </div>
+        <div class="ellipse-3"></div>
+        <div class="ellipse-4"></div>
+      </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        $('#uploadForm').submit(function (event) {
+          event.preventDefault();
+          uploadImage();
+        });
+
+        $('#predictButton').click(function () {
+          captureImageFromCamera();
+        });
+
+        function uploadImage() {
+          var file = $('#fileInput')[0].files[0];
+          console.log('Selected file:', file);
+          if (!file) {
+            speakText('Image not detected, Please rescan');
+            return;
+          }
+          var formData = new FormData();
+          formData.append('file', file);
+          $.ajax({
+            url: '/predict',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (response) {
+              if (response.error) {
+                $('#prediction').text('Error: ' + response.error);
+                speakText('Error: ' + response.error);
+              } else {
+                $('#prediction').text('Predicted : ' + response.predicted_class);
+                speakText('Identified ' + response.predicted_class);
+              }
+              console.log('Response:', response);
+            },
+            error: function (xhr, status, error) {
+              console.error('Error:', error);
+              $('#prediction').text('An error occurred during prediction');
+              speakText('An error occurred during prediction');
+            }
+          });
+        }
+
+        function speakText(text) {
+          if ('speechSynthesis' in window) {
+            var utterance = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterance);
+          } else {
+            console.log('Speech synthesis is not supported in this browser.');
+          }
+        }
+
+        navigator.mediaDevices
+          .getUserMedia({ video: true })
+          .then(function (stream) {
+            var video = document.getElementById('camera');
+            video.srcObject = stream;
+            video.play();
+          })
+          .catch(function (err) {
+            console.log('Unable to access camera: ' + err);
+          });
+
+          function captureImageFromCamera() {
+  var canvas = document.getElementById('canvas');
+  var context = canvas.getContext('2d');
+  var video = document.getElementById('camera');
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  var imageData = canvas.toDataURL('image/jpeg');
+
+  Tesseract.recognize(imageData, 'eng', { logger: console.log })
+    .then(({ data: { text } }) => {
+      var file = dataURItoBlob(imageData);
+      var formData = new FormData();
+      formData.append('file', file);
+
+      $.ajax({
+        url: '/predict',
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function (response) {
+          if (response.error) {
+            $('#prediction').text('Error: ' + response.error);
+            speakText('Error: ' + response.error);
+          } else {
+            $('#prediction').text('Predicted : ' + response.predicted_class);
+            speakText('Identified ' + response.predicted_class);
+          }
+          console.log('Response:', response);
+        },
+        error: function (xhr, status, error) {
+          console.error('Error:', error);
+          $('#prediction').text('An error occurred during prediction');
+          speakText('An error occurred during prediction');
+        }
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      $('#prediction').text('Error: ' + err.message);
+      speakText('Error: ' + err.message);
+    });
+}
+
+        function dataURItoBlob(dataURI) {
+          var binary = atob(dataURI.split(',')[1]);
+          var array = [];
+          for (var i = 0; i < binary.length; i++) {
+            array.push(binary.charCodeAt(i));
+          }
+          return new Blob([new Uint8Array(array)], { type: 'image/jpeg' });
+        }
+      });
+    </script>
+  </body>
+</html>

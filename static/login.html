@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="globals.css" />
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+  <div class="user-sign-up">
+    <div class="div">
+      <div class="overlap">
+        <div class="ellipse"></div>
+        <div class="ellipse-2"></div>
+        <p class="XVISION" id="loginxvis"><span class="text-wrapper"></span> <span class="span">XVISION</span></p>
+      </div>
+      <div class="ellipse-3"></div>
+      <div class="ellipse-4"></div>
+      <div class="group">
+        <div class="overlap-group-wrapper">
+          <button class="overlap-group" id="login-btn"><div class="text-wrapper-2">Log in</div></button>
+          <div class="text">
+            <p>New here?</p>
+            <p class="text1" id="signupx">Sign up</p>
+          </div>
+        </div>
+      </div>
+      <div class="overlap-wrapper">
+        <div><input type="email" class="email" placeholder="Email" id="email"></div>
+        <div class="new">
+          <input type="password" class="password" placeholder="Password" id="password">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+    
+    const firebaseConfig = {
+    apiKey: "AIzaSyBLzM8hP6i5dwOoN0IKKCxMpyOliZwXwZs",
+    authDomain: "xvision-f6e6f.firebaseapp.com",
+    projectId: "xvision-f6e6f",
+    storageBucket: "xvision-f6e6f.appspot.com",
+    messagingSenderId: "418056262127",
+    appId: "1:418056262127:web:029043c7b11cfc978ae61a"
+  };
+    
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    document.getElementById("login-btn").addEventListener("click", function() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          window.location.href = "/";
+        })
+        .catch((error) => {
+          alert(error.message);
+        });
+    });
+    
+    document.getElementById("signupx").addEventListener("click", function() {
+        window.location.href = "/static/signup.html";
+    });
+    document.getElementById("loginxvis").addEventListener("click", function() {
+        window.location.href = "/static/user.html";
+    });
+          
+
+  </script>
+</body>
+</html>
